@@ -1,12 +1,13 @@
-lrm = erlang_linux_release_builder
-maker_exists = $(shell docker images -q $(lrm) 2> /dev/null)
-release_name = $(shell bin/release_name)
-system_version = $(shell docker run -v `pwd`:/$(release_name) erlang /$(release_name)/bin/system_version)
+DOCKER ?= docker
+LRM = erlang_linux_release_builder
+MAKER_EXISTS = $(shell $(DOCKER) images -q $(LRM) 2> /dev/null)
+RELEASE_NAME = $(shell bin/release_name)
+SYSTEM_VERSION = $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/bin/system_version)
 
 linux_release_build_machine:
-ifeq ($(strip $(maker_exists)),)
+ifeq ($(strip $(MAKER_EXISTS)),)
 	@echo "making linux erlang release builder..."
-	@docker build -t $(lrm) -f builder/Dockerfile.builder builder
+	@$(DOCKER) build -t $(LRM) -f builder/Dockerfile.builder builder
 	@echo "done."
 else
 	@echo "linux erlang release builder already exists"
@@ -16,26 +17,26 @@ linux_release: linux_release_build_machine
 	@mkdir -p .linux_deps
 	@mkdir -p .linux_ebin
 	@mkdir -p .linux_rel
-	@docker run -v `pwd`:/$(release_name) \
-		-v `pwd`/.linux_deps:/$(release_name)/deps \
-		-v `pwd`/.linux_ebin:/$(release_name)/ebin \
-		-v `pwd`/.linux_rel:/$(release_name)/_rel \
-		-it $(lrm) bash -c \
-		"cd /${release_name} && make && ./bin/mkimage"
+	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+		-v `pwd`/.linux_deps:/$(RELEASE_NAME)/deps \
+		-v `pwd`/.linux_ebin:/$(RELEASE_NAME)/ebin \
+		-v `pwd`/.linux_rel:/$(RELEASE_NAME)/_rel \
+		-it $(LRM) bash -c \
+		"cd /${RELEASE_NAME} && make && ./bin/mkimage"
 	@echo "release is now in .linux_rel"
 
 docker_image: linux_release
-	$(eval version := $(shell docker run -v `pwd`:/$(release_name) \
-		-v `pwd`/.linux_deps:/$(release_name)/deps \
-		-v `pwd`/.linux_ebin:/$(release_name)/ebin \
-		-v `pwd`/.linux_rel:/$(release_name)/_rel \
-		-it $(lrm) bash -c \
-		"cd /${release_name} && ./bin/version")) 
-	@docker build \
-		--build-arg REL_NAME=$(release_name) \
-		--build-arg ERTS_VSN=$(system_version) \
+	$(eval version := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+		-v `pwd`/.linux_deps:/$(RELEASE_NAME)/deps \
+		-v `pwd`/.linux_ebin:/$(RELEASE_NAME)/ebin \
+		-v `pwd`/.linux_rel:/$(RELEASE_NAME)/_rel \
+		-it $(LRM) bash -c \
+		"cd /${RELEASE_NAME} && ./bin/version")) 
+	@$(DOCKER) build \
+		--build-arg REL_NAME=$(RELEASE_NAME) \
+		--build-arg ERTS_VSN=$(SYSTEM_VERSION) \
 		--pull=true \
 		--no-cache=true \
 		--force-rm=true \
 	  	-f builder/Dockerfile.release \
-		-t $(release_name):$(version) .	
+		-t $(RELEASE_NAME):$(version) .	
