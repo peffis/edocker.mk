@@ -10,27 +10,30 @@ DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
 
 
-root:	
+edocker_boot: 	| $(DOCKER_FILES) $(BUILD_SCRIPTS)
+
+$(EDOCKER_ROOT):	
 	@mkdir -p $(EDOCKER_ROOT)
 
-builder: root
+$(EDOCKER_ROOT)/builder: | $(EDOCKER_ROOT)
 	@mkdir -p $(EDOCKER_ROOT)/builder
 
-$(EDOCKER_ROOT)/builder/%: builder
+$(EDOCKER_ROOT)/builder/%: | $(EDOCKER_ROOT)/builder
+	@echo "Downloading Dockerfile" $@
 	@curl -s -o $@ $(BASE_URL)/$(@:$(EDOCKER_ROOT)/%=%)
 
 build_scripts: $(BUILD_SCRIPTS)
 
 docker_files: $(DOCKER_FILES)
 
-bin: root
+$(EDOCKER_ROOT)/bin: | $(EDOCKER_ROOT)
 	@mkdir -p $(EDOCKER_ROOT)/bin
 
-$(EDOCKER_ROOT)/bin/%: bin
+$(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
 	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@chmod a+x $@
 
-linux_release_build_machine: $(DOCKER_FILES)
+linux_release_build_machine: | $(DOCKER_FILES)
 ifeq ($(strip $(MAKER_EXISTS)),)
 	@echo "making linux erlang release builder..."
 	@$(DOCKER) build -t $(LRM) -f $(EDOCKER_ROOT)/builder/Dockerfile.builder $(EDOCKER_ROOT)/builder
@@ -39,7 +42,7 @@ else
 	@echo "linux erlang release builder already exists"
 endif
 
-linux_release: linux_release_build_machine build_scripts
+linux_release: linux_release_build_machine | $(BUILD_SCRIPTS)
 	@echo "making linux release..."
 	@mkdir -p $(EDOCKER_ROOT)/linux_deps
 	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
@@ -55,7 +58,7 @@ linux_release: linux_release_build_machine build_scripts
 		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage"
 	@echo "a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel"
 
-docker_image: linux_release $(DOCKER_FILES)
+docker_image: linux_release | $(DOCKER_FILES)
 	@echo "making docker image..."
 	$(eval version := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
