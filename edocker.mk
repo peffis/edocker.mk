@@ -34,6 +34,7 @@ else
 endif
 
 linux_release: linux_release_build_machine build_scripts
+	@echo "making linux release..."
 	@mkdir -p .linux_deps
 	@mkdir -p .linux_ebin
 	@mkdir -p .linux_rel
@@ -43,9 +44,10 @@ linux_release: linux_release_build_machine build_scripts
 		-v `pwd`/.linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
 		"cd /${RELEASE_NAME} && make && ./bin/mkimage"
-	@echo "release is now in .linux_rel"
+	@echo "a linux release of the project is now in .linux_rel"
 
 docker_image: linux_release $(DOCKER_FILES)
+	@echo "making docker image..."
 	$(eval version := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/.linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/.linux_ebin:/$(RELEASE_NAME)/ebin \
@@ -59,4 +61,5 @@ docker_image: linux_release $(DOCKER_FILES)
 		--no-cache=true \
 		--force-rm=true \
 	  	-f builder/Dockerfile.release \
-		-t $(RELEASE_NAME):$(version) .	
+		-t $(RELEASE_NAME):$(version) .
+	@echo "a docker image" $(RELEASE_NAME):$(version) "was created"
