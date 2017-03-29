@@ -2,24 +2,27 @@
 An erlang linux release/docker image builder 
 
 # inspiration
-The origin of the build scripts in the bin folder and the inspiration comes from Peter Morgan's [Erlang in Docker From Scratch repo](https://github.com/shortishly/erlang-in-docker-from-scratch). The work in this
-repo is to integrate that way of building of erlang docker images nicely with
-erlang.mk in a reusable manner.
+The origin of the build scripts in the bin folder and the inspiration comes from 
+Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erlang-in-docker-from-scratch) 
+repository. The purpose of the work in this repository is to integrate Peter's way of building erlang docker 
+images with erlang.mk in a reusable manner. 
 
 You can use this project to build erlang releases even if you do not have
 erlang installed on your machine and make a minimal erlang docker image
-of your release. It uses a docker instance as build machine so you can
-build a linux release and docker image even if you are on a Mac. 
+of your release. It uses a docker container as build machine so you can
+build a *linux release* and *docker image* even if you are on a Mac or
+if you do not have the erlang runtime installed on your Linux machine. 
 
 
 # documentation
 
 ## requirements
 It is assumed you have docker installed on your machine (such as Docker for Mac
-or docker-machine). 
+or docker-machine). If you run docker with sudo you should set the environment 
+variable DOCKER to *sudo docker*.
 
 ## bootstrapping
-Assume you have an [erlang.mk](https://erlang.mk) project with a Makefile
+Assume you have an [erlang.mk](https://erlang.mk) project with a *Makefile*
 ```
 PROJECT = my_project
 PROJECT_DESCRIPTION = Some project
@@ -44,7 +47,7 @@ include edocker.mk
 ```
 
 ## using
-### building a linux erlang release of your project (such as if you are on a Mac)
+### building a linux executable erlang release of your project
 ```
 $ make linux_release
 ```
