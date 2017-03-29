@@ -17,8 +17,7 @@ builder: root
 	@mkdir -p $(EDOCKER_ROOT)/builder
 
 $(EDOCKER_ROOT)/builder/%: builder
-	echo "not building..."
-	#@curl -s -o $@ $(BASE_URL)/$(@:$(EDOCKER_ROOT)/%=%)
+	@curl -s -o $@ $(BASE_URL)/$(@:$(EDOCKER_ROOT)/%=%)
 
 build_scripts: $(BUILD_SCRIPTS)
 
@@ -26,9 +25,8 @@ bin: root
 	@mkdir -p $(EDOCKER_ROOT)/bin
 
 $(EDOCKER_ROOT)/bin/%: bin
-	echo "Not downloading bin"
-	#@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	#@chmod a+x $@
+	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
+	@chmod a+x $@
 
 linux_release_build_machine: $(DOCKER_FILES)
 ifeq ($(strip $(MAKER_EXISTS)),)
@@ -45,9 +43,7 @@ linux_release: linux_release_build_machine build_scripts
 	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
 	@mkdir -p $(EDOCKER_ROOT)/linux_rel
 	$(eval RELEASE_NAME := $(shell $(EDOCKER_ROOT)/bin/release_name))
-	echo "release_name:" $(RELEASE_NAME)
 	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
-	echo "system_version:" $(SYSTEM_VERSION)
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
