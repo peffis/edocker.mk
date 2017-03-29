@@ -10,6 +10,10 @@ DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
 
 
+define log_msg
+	@printf "\033[1;37m===> "$(1)"\033[0m\n"
+endef
+
 edocker_boot: 	| $(DOCKER_FILES) $(BUILD_SCRIPTS)
 
 $(EDOCKER_ROOT):	
@@ -34,17 +38,15 @@ $(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
 	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@chmod a+x $@
 
-linux_release_build_machine: | $(DOCKER_FILES)
+linux_release_build_machine: | edocker_boot
 ifeq ($(strip $(MAKER_EXISTS)),)
-	@echo "making linux erlang release builder..."
+	$(call log_msg,"making linux erlang release builder...")
 	@$(DOCKER) build -t $(LRM) -f $(EDOCKER_ROOT)/builder/Dockerfile.builder $(EDOCKER_ROOT)/builder
-	@echo "done."
-else
-	@echo "linux erlang release builder already exists"
+	$(call log_msg,"done")
 endif
 
-linux_release: linux_release_build_machine | $(BUILD_SCRIPTS)
-	@echo "making linux release..."
+linux_release: linux_release_build_machine 
+	$(call log_msg,"making linux release...")
 	@mkdir -p $(EDOCKER_ROOT)/linux_deps
 	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
 	@mkdir -p $(EDOCKER_ROOT)/linux_rel
@@ -57,10 +59,11 @@ linux_release: linux_release_build_machine | $(BUILD_SCRIPTS)
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
 		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage"
-	@echo "a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel"
 
-docker_image: linux_release | $(DOCKER_FILES)
-	@echo "making docker image..."
+	$(call log_msg,"a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel")
+
+docker_image: linux_release
+	$(call log_msg,"making docker image...")
 	$(eval version := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
@@ -75,4 +78,4 @@ docker_image: linux_release | $(DOCKER_FILES)
 		--force-rm=true \
 	  	-f $(EDOCKER_ROOT)/builder/Dockerfile.release \
 		-t $(RELEASE_NAME):$(version) .
-	@echo "a docker image" $(RELEASE_NAME):$(version) "was created"
+	$(call log_msg,"docker image "$(RELEASE_NAME):$(version)" was created")
