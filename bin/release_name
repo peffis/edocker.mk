@@ -29,7 +29,7 @@ main([]) ->
                 relx())).
 
 root_dir() ->
-    filename:dirname(escript:script_name()).
+    filename:dirname(filename:dirname(escript:script_name())).
 
 config() ->
     filename:join([root_dir(),"../relx.config"]).

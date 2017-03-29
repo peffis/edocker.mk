@@ -19,4 +19,4 @@ ENTRYPOINT exec ${BINDIR}/erlexec \
            -config ${CONFIG} \
            -args_file ${ARGS_FILE}
 
-ADD .linux_rel/${REL_NAME}/ /
+ADD .edocker.mk/linux_rel/${REL_NAME}/ /

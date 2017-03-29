@@ -19,7 +19,7 @@ main([]) ->
     io:format("~s~n", [version()]).
 
 root_dir() ->
-    filename:dirname(escript:script_name()).
+    filename:dirname(filename:dirname(escript:script_name())).
 
 app() ->
     [Filename] = filelib:wildcard(filename:join([root_dir(),"../ebin/*.app"])),
