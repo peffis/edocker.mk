@@ -21,6 +21,8 @@ $(EDOCKER_ROOT)/builder/%: builder
 
 build_scripts: $(BUILD_SCRIPTS)
 
+docker_files: $(DOCKER_FILES)
+
 bin: root
 	@mkdir -p $(EDOCKER_ROOT)/bin
 
