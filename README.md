@@ -6,6 +6,12 @@ The origin of the build scripts in the bin folder and the inspiration comes from
 repo is to integrate that way of building of erlang docker images nicely with
 erlang.mk in a reusable manner.
 
+You can use this project to build erlang releases even if you do not have
+erlang installed on your machine and make a minimal erlang docker image
+of your release. It uses a docker instance as build machine so you can
+build a linux release and docker image even if you are on a Mac. 
+
+
 # documentation
 
 ## requirements
