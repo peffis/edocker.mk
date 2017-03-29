@@ -15,7 +15,8 @@
 #
 
 SCRIPT_DIR=$(dirname $0)
-REL_NAME=$(${SCRIPT_DIR}/app)
+APP_NAME=$(${SCRIPT_DIR}/app)
+REL_NAME=${APP_NAME}_release
 RELEASE=_rel/${REL_NAME}
 
 # strip symbol information out of any ERTS binaries
@@ -35,3 +36,5 @@ cp /lib64/ld-linux*.so.* ${RELEASE}/lib64
 
 # and a shell
 cp /bin/sh ${RELEASE}/bin
+
+echo ${RELEASE} is the release 
