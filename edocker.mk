@@ -19,8 +19,8 @@ $(EDOCKER_ROOT)/builder: | $(EDOCKER_ROOT)
 	@mkdir -p $(EDOCKER_ROOT)/builder
 
 $(EDOCKER_ROOT)/builder/%: | $(EDOCKER_ROOT)/builder
-	@echo "Downloading Dockerfile" $@
-	@curl -s -o $@ $(BASE_URL)/$(@:$(EDOCKER_ROOT)/%=%)
+	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
+	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 
 build_scripts: $(BUILD_SCRIPTS)
 
@@ -30,6 +30,7 @@ $(EDOCKER_ROOT)/bin: | $(EDOCKER_ROOT)
 	@mkdir -p $(EDOCKER_ROOT)/bin
 
 $(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
+	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@chmod a+x $@
 
