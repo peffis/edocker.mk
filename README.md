@@ -7,6 +7,44 @@ repo is to integrate that way of building of erlang docker images nicely with
 erlang.mk in a reusable manner.
 
 # documentation
-So far this is just a test that is probably not that useful to others.
-If it gets to a stage where others might want to use it I will update this
-README with usage instructions.
+
+## requirements
+It is assumed you have docker installed on your machine (such as Docker for Mac
+or docker-machine). 
+
+## bootstrapping
+Assume you have an [erlang.mk](https://erlang.mk) project with a Makefile
+```
+PROJECT = my_project
+PROJECT_DESCRIPTION = Some project
+PROJECT_VERSION = 0.1.0
+
+include erlang.mk
+```
+
+1. Download edocker.mk
+```
+$ curl -O https://raw.githubusercontent.com/peffis/edocker.mk/master/edocker.mk
+```
+
+2. Add edocker.mk to your Makefile
+```
+PROJECT = my_project
+PROJECT_DESCRIPTION = Some project
+PROJECT_VERSION = 0.1.0
+
+include erlang.mk
+include edocker.mk
+```
+
+## using
+### building a linux erlang release of your project (such as if you are on a Mac)
+```
+$ make linux_release
+```
+
+### building a docker image of your linux release
+```
+$ make docker_image
+```
+
