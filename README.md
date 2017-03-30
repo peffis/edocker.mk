@@ -18,7 +18,7 @@ or docker-machine). If you run docker with sudo you should set the environment
 variable DOCKER to *sudo docker*.
 
 ## Bootstrapping
-Assume you have an [erlang.mk](https://erlang.mk) project with a *Makefile*
+Let us assume you have an [erlang.mk](https://erlang.mk) project with a *Makefile*, something like...
 ```
 PROJECT = my_project
 PROJECT_DESCRIPTION = Some project
@@ -26,13 +26,13 @@ PROJECT_VERSION = 0.1.0
 
 include erlang.mk
 ```
-
-1. Download edocker.mk
+Then...
+1. ...download edocker.mk...
 ```
 $ curl -O https://raw.githubusercontent.com/peffis/edocker.mk/master/edocker.mk
 ```
-
-2. Add edocker.mk to your Makefile
+...and...
+2. ...add edocker.mk to your Makefile
 ```
 PROJECT = my_project
 PROJECT_DESCRIPTION = Some project
@@ -42,12 +42,12 @@ include erlang.mk
 include edocker.mk
 ```
 
-## Building a linux erlang release of your project
+## Build a linux erlang release of your project
 ```
 $ make linux_release
 ```
 
-## Building a docker image of your linux release
+## Build a docker image of your linux release
 ```
 $ make docker_image
 ```
