@@ -9,9 +9,11 @@ also from a machine that does not have a Linux Erlang runtime.
 
 You can use this project to build *Linux Erlang releases* and make small *Erlang Docker images*
 of your Erlang project. Like in Peter's repo, the docker image is based on *scratch* and contains only the 
-bare Erlang release, no Ubuntu, Alpine or Debian OS. *edocker.mk* uses a Docker container as *build machine* so you can
-build a *Linux release* and a *Docker image* even if you are on a Mac or
-if you do not have the Erlang runtime installed on your Linux machine. You will need *Docker* though, 
+bare Erlang release, no Ubuntu, Alpine or Debian OS. 
+
+*edocker.mk* make use of a Docker container as *build machine* so you can
+build a *Linux release* and a *Docker image* of your project even if you are on a Mac or
+if you do not have the Erlang runtime installed on your machine. You will need *Docker* though, 
 obviously. 
 
 ## Requirements
