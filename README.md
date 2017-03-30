@@ -27,12 +27,12 @@ PROJECT_VERSION = 0.1.0
 include erlang.mk
 ```
 Then...
-1. ...download edocker.mk...
+1. Download edocker.mk
 ```
 $ curl -O https://raw.githubusercontent.com/peffis/edocker.mk/master/edocker.mk
 ```
-...and...
-2. ...add edocker.mk to your Makefile
+
+2. Add edocker.mk to your Makefile
 ```
 PROJECT = my_project
 PROJECT_DESCRIPTION = Some project
