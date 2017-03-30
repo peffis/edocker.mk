@@ -7,9 +7,8 @@ Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erl
 repository. The purpose of the work in this repository is to integrate Peter's way of building erlang docker 
 images with erlang.mk in a reusable manner. 
 
-You can use this project to build erlang releases even if you do not have
-erlang installed on your machine and make a minimal erlang docker image
-of your release. It uses a docker container as build machine so you can
+You can use this project to build linux erlang releases and make a minimal erlang docker image
+of your erlang project release. edocker.mk uses a docker container as *build machine* so you can
 build a *linux release* and *docker image* even if you are on a Mac or
 if you do not have the erlang runtime installed on your Linux machine. 
 
