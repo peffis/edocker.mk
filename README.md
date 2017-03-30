@@ -2,20 +2,22 @@
 An erlang linux release/docker image builder 
 
 ## Inspiration
-The origin of the build scripts in the bin folder and the inspiration comes from 
-Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erlang-in-docker-from-scratch) 
-repository. The purpose of the work in this repository is to integrate Peter's way of building erlang docker 
-images with erlang.mk in a reusable manner. 
+The build scripts in the *bin* folder are derived from Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erlang-in-docker-from-scratch). The purpose of the work in this repository 
+is to integrate Peter's way of building erlang docker images with erlang.mk in a reusable manner, making it 
+more of a stand-alone build tool and, also, making it possible to build erlang releases and docker images
+also from a machine that does not have a Linux Erlang runtime.
 
-You can use this project to build linux erlang releases and make a minimal erlang docker image
-of your erlang project release. edocker.mk uses a docker container as *build machine* so you can
-build a *linux release* and *docker image* even if you are on a Mac or
-if you do not have the erlang runtime installed on your Linux machine. 
+You can use this project to build *Linux Erlang releases* and make a minimal *Erlang Docker images*
+of your Erlang project. *edocker.mk* uses a Docker container as *build machine* so you can
+build a *Linux release* and a *Docker image* even if you are on a Mac or
+if you do not have the Erlang runtime installed on your Linux machine. You will need *Docker* though, 
+obviously. 
 
 ## Requirements
-It is assumed you have docker installed on your machine (such as Docker for Mac
-or docker-machine). If you run docker with sudo you should set the environment 
-variable DOCKER to *sudo docker*.
+It is assumed you have *Docker* installed on your machine (such as *Docker for Mac*
+or *docker-machine*). If you run Docker with *sudo* you should set the environment 
+variable *DOCKER* to *sudo docker* (for instance *make DOCKER="sudo docker"*, or add 
+export DOCKER="sudo docker" to your .bashrc/.bash_profile)
 
 ## Bootstrapping
 Let us assume you have an [erlang.mk](https://erlang.mk) project with a *Makefile*, something like...
