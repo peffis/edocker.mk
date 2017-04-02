@@ -5,7 +5,7 @@ EDOCKER_ROOT = .edocker.mk
 BASE_URL = https://raw.githubusercontent.com/peffis/edocker.mk/master/
 BUILD_SCRIPTS = $(EDOCKER_ROOT)/bin/app $(EDOCKER_ROOT)/bin/mkimage \
 	$(EDOCKER_ROOT)/bin/release_name $(EDOCKER_ROOT)/bin/release_version \
-	$(EDOCKER_ROOT)/bin/system_version $(EDOCKER_ROOT)/bin/version 
+	$(EDOCKER_ROOT)/bin/system_version $(EDOCKER_ROOT)/bin/version $(EDOCKER_ROOT)/src/edocker_erlexec.c
 DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
 
@@ -33,7 +33,15 @@ docker_files: $(DOCKER_FILES)
 $(EDOCKER_ROOT)/bin: | $(EDOCKER_ROOT)
 	@mkdir -p $(EDOCKER_ROOT)/bin
 
+$(EDOCKER_ROOT)/src: | $(EDOCKER_ROOT)
+	@mkdir -p $(EDOCKER_ROOT)/src
+
 $(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
+	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
+	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
+	@chmod a+x $@
+
+$(EDOCKER_ROOT)/src/%: | $(EDOCKER_ROOT)/src
 	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@chmod a+x $@
@@ -51,20 +59,35 @@ linux_release: linux_release_build_machine
 	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
 	@mkdir -p $(EDOCKER_ROOT)/linux_rel
 	$(eval RELEASE_NAME := $(shell $(EDOCKER_ROOT)/bin/release_name))
-	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
+	$(eval ERTS_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
+	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
+		-it $(LRM) bash -c \
+		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version")) 
+
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage"
+		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage "
+
+	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
+		-it $(LRM) bash -c \
+		"cd /${RELEASE_NAME} && gcc -DERTS_VERSION=\\\"${ERTS_VERSION}\\\" -DREL_VSN=\\\"${REL_VSN}\\\" -DREL_NAME=\\\"${RELEASE_NAME}\\\" -o _rel/${RELEASE_NAME}/erts-${ERTS_VERSION}/bin/edocker_erlexec /${RELEASE_NAME}/${EDOCKER_ROOT}/src/edocker_erlexec.c"
 
 	$(call log_msg,"a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel")
 
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
-	$(eval version := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
+	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
@@ -77,5 +100,5 @@ docker_image: linux_release
 		--no-cache=true \
 		--force-rm=true \
 	  	-f $(EDOCKER_ROOT)/builder/Dockerfile.release \
-		-t $(RELEASE_NAME):$(version) .
-	$(call log_msg,"docker image "$(RELEASE_NAME):$(version)" was created")
+		-t $(RELEASE_NAME):$(REL_VSN) .
+	$(call log_msg,"docker image "$(RELEASE_NAME):$(REL_VSN)" was created")
