@@ -44,7 +44,6 @@ $(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
 $(EDOCKER_ROOT)/src/%: | $(EDOCKER_ROOT)/src
 	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	@chmod a+x $@
 
 linux_release_build_machine: | edocker_boot
 ifeq ($(strip $(MAKER_EXISTS)),)
@@ -66,7 +65,6 @@ linux_release: linux_release_build_machine
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
 		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version")) 
-
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
