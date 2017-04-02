@@ -59,12 +59,6 @@ linux_release: linux_release_build_machine
 	@mkdir -p $(EDOCKER_ROOT)/linux_rel
 	$(eval RELEASE_NAME := $(shell $(EDOCKER_ROOT)/bin/release_name))
 	$(eval ERTS_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
-	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version")) 
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
@@ -78,7 +72,7 @@ linux_release: linux_release_build_machine
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && gcc -DERTS_VERSION=\\\"${ERTS_VERSION}\\\" -DREL_VSN=\\\"${REL_VSN}\\\" -DREL_NAME=\\\"${RELEASE_NAME}\\\" -o _rel/${RELEASE_NAME}/erts-${ERTS_VERSION}/bin/edocker_erlexec /${RELEASE_NAME}/${EDOCKER_ROOT}/src/edocker_erlexec.c"
+		"cd /${RELEASE_NAME} && gcc -DERTS_VERSION=\\\"${ERTS_VERSION}\\\" -DREL_NAME=\\\"${RELEASE_NAME}\\\" -o _rel/${RELEASE_NAME}/erts-${ERTS_VERSION}/bin/edocker_erlexec /${RELEASE_NAME}/${EDOCKER_ROOT}/src/edocker_erlexec.c"
 
 	$(call log_msg,"a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel")
 
