@@ -8,6 +8,7 @@ BUILD_SCRIPTS = $(EDOCKER_ROOT)/bin/app $(EDOCKER_ROOT)/bin/mkimage \
 	$(EDOCKER_ROOT)/bin/system_version $(EDOCKER_ROOT)/bin/version $(EDOCKER_ROOT)/src/edocker_erlexec.c
 DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
+BINARIES_TO_INCLUDE ?= 
 
 
 define log_msg
@@ -60,12 +61,18 @@ linux_release: linux_release_build_machine
 	$(eval RELEASE_NAME := $(shell $(EDOCKER_ROOT)/bin/release_name))
 	$(eval ERTS_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
 
+	$(foreach binary,$(BINARIES_TO_INCLUDE), @$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
+		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
+		-it $(LRM) bash -c "cp `which ${binary}` /${RELEASE_NAME}/_rel/${RELEASE_NAME}/bin/";)
+
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage "
+		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage ${BINARIES_TO_INCLUDE}"
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
