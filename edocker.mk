@@ -9,6 +9,7 @@ BUILD_SCRIPTS = $(EDOCKER_ROOT)/bin/app $(EDOCKER_ROOT)/bin/mkimage \
 DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
 BINARIES_TO_INCLUDE ?= 
+EXTRA_PACKAGES ?= 
 
 
 define log_msg
@@ -49,7 +50,8 @@ $(EDOCKER_ROOT)/src/%: | $(EDOCKER_ROOT)/src
 linux_release_build_machine: | edocker_boot
 ifeq ($(strip $(MAKER_EXISTS)),)
 	$(call log_msg,"making linux erlang release builder...")
-	@$(DOCKER) build -t $(LRM) -f $(EDOCKER_ROOT)/builder/Dockerfile.builder $(EDOCKER_ROOT)/builder
+	$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM)  \
+		-f $(EDOCKER_ROOT)/builder/Dockerfile.builder $(EDOCKER_ROOT)/builder
 	$(call log_msg,"done")
 endif
 
@@ -65,7 +67,7 @@ linux_release: linux_release_build_machine
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c "cp `which ${binary}` /${RELEASE_NAME}/_rel/${RELEASE_NAME}/bin/";)
+		-it $(LRM) bash -c "cp \`which ${binary}\` /${RELEASE_NAME}/_rel/${RELEASE_NAME}/bin/";)
 
 	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
