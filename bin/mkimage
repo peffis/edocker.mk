@@ -16,7 +16,7 @@
 
 SCRIPT_DIR=$(dirname $0)
 APP_NAME=$(${SCRIPT_DIR}/app)
-REL_NAME=${APP_NAME}_release
+REL_NAME=$(${SCRIPT_DIR}/release_name)
 RELEASE=_rel/${REL_NAME}
 
 # strip symbol information out of any ERTS binaries
@@ -31,7 +31,7 @@ do
     BINARIES[$i]=`which $b`
     ((++1))
 done
-    
+
 # copy any dynamically linked libaries used by ERTS into release
 for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/* _rel/*/lib/*/priv/* $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
     mkdir -p $(dirname ${RELEASE}$lib)
@@ -44,4 +44,3 @@ cp /lib64/ld-linux*.so.* ${RELEASE}/lib64
 
 # and a shell
 cp /bin/sh ${RELEASE}/bin
-
