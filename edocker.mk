@@ -87,8 +87,8 @@ linux_release: linux_release_build_machine
 
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
-	@mkdir -p $(EDOCKER_ROOT)/linux_rel/etc
-	@echo "{lookup, [file, dns]}." > $(EDOCKER_ROOT)/linux_rel/etc/erl_inetrc
+	@mkdir -p $(EDOCKER_ROOT)/linux_rel/$(RELEASE_NAME)/etc
+	@echo "{lookup, [file, dns]}." > $(EDOCKER_ROOT)/linux_rel/$(RELEASE_NAME)/etc/erl_inetrc
 	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
 	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
