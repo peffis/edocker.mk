@@ -8,8 +8,8 @@ BUILD_SCRIPTS = $(EDOCKER_ROOT)/bin/app $(EDOCKER_ROOT)/bin/mkimage \
 	$(EDOCKER_ROOT)/bin/system_version $(EDOCKER_ROOT)/bin/version $(EDOCKER_ROOT)/src/edocker_erlexec.c
 DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
 	$(EDOCKER_ROOT)/builder/Dockerfile.release
-BINARIES_TO_INCLUDE ?= 
-EXTRA_PACKAGES ?= 
+BINARIES_TO_INCLUDE ?=
+EXTRA_PACKAGES ?=
 
 
 define log_msg
@@ -18,7 +18,7 @@ endef
 
 edocker_boot: 	| $(DOCKER_FILES) $(BUILD_SCRIPTS)
 
-$(EDOCKER_ROOT):	
+$(EDOCKER_ROOT):
 	@mkdir -p $(EDOCKER_ROOT)
 
 $(EDOCKER_ROOT)/builder: | $(EDOCKER_ROOT)
@@ -55,7 +55,7 @@ ifeq ($(strip $(MAKER_EXISTS)),)
 	$(call log_msg,"done")
 endif
 
-linux_release: linux_release_build_machine 
+linux_release: linux_release_build_machine
 	$(call log_msg,"making linux release...")
 	@mkdir -p $(EDOCKER_ROOT)/linux_deps
 	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
@@ -87,13 +87,15 @@ linux_release: linux_release_build_machine
 
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
+	@mkdir -p $(EDOCKER_ROOT)/linux_rel/etc
+	@echo "{lookup, [file, dns]}." > $(EDOCKER_ROOT)/linux_rel/etc/erl_inetrc
 	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
 	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
 		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version")) 
+		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version"))
 	@$(DOCKER) build \
 		--build-arg REL_NAME=$(RELEASE_NAME) \
 		--build-arg ERTS_VSN=$(SYSTEM_VERSION) \

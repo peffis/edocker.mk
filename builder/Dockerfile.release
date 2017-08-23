@@ -12,6 +12,7 @@ ENV ARGS_FILE /releases/${REL_VSN}/vm.args
 ENV EDOCKER_COOKIE edocker_default_cookie
 ENV EDOCKER_NAME edocker_default_name
 ENV EDOCKER_HOST 127.0.0.1
+ENV ERL_INETRC /etc/erl_inetrc
 
 ENV TZ=GMT
 
