@@ -62,5 +62,3 @@ Suppose you know that your erlang build will require some extra deb-package. In 
 ```
 $ EXTRA_PACKAGES=libpam0g-dev make docker_image
 ```
-
-Then...
