@@ -56,3 +56,11 @@ $ make linux_release
 ```
 $ make docker_image
 ```
+
+## Adding extra packages to the build machine
+Suppose you know that your erlang build will require some extra deb-package. In order to add this extra package to the build machine you include it with the EXTRA_PACKAGES variable. Example:
+```
+$ EXTRA_PACKAGES=libpam0g-dev make docker_image
+```
+
+Then...
