@@ -87,7 +87,7 @@ linux_release: linux_release_build_machine
 
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
-	$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
+	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
 		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
