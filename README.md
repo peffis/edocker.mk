@@ -76,3 +76,18 @@ This means that you can for instance do
 docker run -e EDOCKER_COOKIE=some_cookie -e EDOCKER_NAME=clarence yourrelease
 ```
 if you want to start _yourrelease_ with the cookie _some_cookie_ and with the node name of _clarence_. 
+
+Or if you want to do the equivalent inside a kubernetes deployment.yaml where you might want to pass the pod IP as the EDOCKER_HOST:
+```yaml
+...snip...
+        env:
+        - name: EDOCKER_NAME
+          value: edocker
+        - name: EDOCKER_HOST
+          valueFrom:
+             fieldRef:
+                 fieldPath: status.podIP
+        - name: EDOCKER_COOKIE
+          value: thecookiethatweallgonnause
+...snip...
+```
