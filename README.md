@@ -62,3 +62,17 @@ Suppose you know that your erlang build will require some extra deb-package. In 
 ```
 $ EXTRA_PACKAGES=libpam0g-dev make docker_image
 ```
+
+## edocker_erlexec
+This repository includes a new binary for bootstrapping the erlang vm - edocker_erlexec. It does the same as erlexec but it adds the possibility to override values such as the cookie, the node name and the host with environment variables which is conveniant in a docker/kubernetes playground. As can be seen in the [docker file for the release](https://github.com/peffis/edocker.mk/blob/master/builder/Dockerfile.release) you can override the following environment variables. 
+```
+ENV EDOCKER_COOKIE edocker_default_cookie
+ENV EDOCKER_NAME edocker_default_name
+ENV EDOCKER_HOST 127.0.0.1
+```
+
+This means that you can for instance do
+```bash
+docker run -e EDOCKER_COOKIE=some_cookie -e EDOCKER_NAME=clarence yourrelease
+```
+if you want to start _yourrelease_ with the cookie _some_cookie_ and with the node name of _clarence_. 
