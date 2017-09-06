@@ -5,10 +5,10 @@ An erlang linux release/docker image builder
 The build scripts in the *bin* folder are derived from Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erlang-in-docker-from-scratch). The purpose of the work in this repository 
 is to integrate Peter's way of building erlang docker images with erlang.mk in a reusable manner, making it 
 more of a stand-alone build tool and, also, making it possible to build erlang releases and docker images
-also from a machine that does not have a Linux Erlang runtime.
+also from a machine that does not have a Linux Erlang runtime (I have mostly used this on my Macbook).
 
 You can use this project to build *Linux Erlang releases* and make small *Erlang Docker images*
-of your Erlang project. Like in Peter's repo, the docker image is based on *scratch* and contains only the 
+of your Erlang project. Like in Peter's repo, the docker image is based on the *scratch image* and contains only the 
 bare Erlang release, no Ubuntu, Alpine or Debian OS. 
 
 *edocker.mk* make use of a Docker container as *build machine* so you can
