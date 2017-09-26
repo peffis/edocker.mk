@@ -54,7 +54,7 @@ include edocker.mk
 $ make linux_release
 ```
 The linux release, if build is successful, will be placed inside a
-volume named <proj>_rel, where <proj> is the folder name of your
+volume named &lt;proj&gt;_rel, where &lt;proj&gt; is the folder name of your
 project. If you want to extract it you could for instance copy it to
 a local release folder by doing:
 ```
