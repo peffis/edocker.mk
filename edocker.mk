@@ -13,19 +13,20 @@ EBIN_MOUNT_POINT = $(ROOT_MOUNT_POINT)/ebin
 EDOCKER_REPO = https://github.com/peffis/edocker.mk.git
 BINARIES_TO_INCLUDE ?=
 EXTRA_PACKAGES ?=
+ARTEFACT_VOLUMES = $(DEPS_VOLUME) $(REL_VOLUME) $(EBIN_VOLUME)
 
 define log_msg
 	@printf "\033[1;37m===> "$(1)"\033[0m\n"
 endef
 
 
-volumes: $(ROOT_VOLUME) $(DEPS_VOLUME) $(REL_VOLUME) $(EBIN_VOLUME)
+volumes: $(ROOT_VOLUME) artefact_volumes
 
 
 $(ROOT_VOLUME):
-	$(call log_msg,"creating "$(ROOT_VOLUME)" volume")
+	$(call log_msg,"checking "$(ROOT_VOLUME)" volume")
 	@if [ `$(DOCKER) volume inspect $(ROOT_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
-		$(DOCKER) volume create $(ROOT_VOLUME); \
+		printf "created " && $(DOCKER) volume create $(ROOT_VOLUME); \
 	fi
 	@$(DOCKER) run --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git echo > /dev/null 2>&1
 	@$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT) > /dev/null 2>&1
@@ -33,27 +34,16 @@ $(ROOT_VOLUME):
 	@$(DOCKER) rm tmp_builder > /dev/null 2>&1
 
 
-$(DEPS_VOLUME):
-	$(call log_msg,"creating "$(DEPS_VOLUME)" volume")
-	@if [ `$(DOCKER) volume inspect $(DEPS_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
-		$(DOCKER) volume create $(DEPS_VOLUME); \
-	fi
-
-$(REL_VOLUME):
-	$(call log_msg,"creating "$(REL_VOLUME)" volume")
-	@if [ `$(DOCKER) volume inspect $(REL_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
-		$(DOCKER) volume create $(REL_VOLUME); \
-	fi
-
-$(EBIN_VOLUME):
-	$(call log_msg,"creating "$(EBIN_VOLUME)" volume")
-	@if [ `$(DOCKER) volume inspect $(EBIN_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
-		$(DOCKER) volume create $(EBIN_VOLUME); \
-	fi
+artefact_volumes:
+	@$(foreach v,$(ARTEFACT_VOLUMES), \
+		printf "\033[1;37m===> checking ${v} volume\033[0m\n"; \
+		if [ `$(DOCKER) volume inspect $(v) 2> /dev/null | head -1` = "[]" ]; then \
+			printf "created " && $(DOCKER) volume create $(v); \
+		fi;)
 
 
 linux_release_build_machine: volumes
-	$(call log_msg,"making linux build machine...")
+	$(call log_msg,"checking linux build machine")
 	@if [ `$(DOCKER) images -q $(LRM) 2> /dev/null`"abc" = "abc" ]; then \
 		echo "rebuilding release machine"; \
 		echo "cloning edocker repo"; \
@@ -69,7 +59,7 @@ linux_release_build_machine: volumes
 
 
 linux_release: linux_release_build_machine
-	$(call log_msg,"making linux release...")
+	$(call log_msg,"making linux release")
 
 	$(eval RELEASE_NAME := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
