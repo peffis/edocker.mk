@@ -53,6 +53,16 @@ include edocker.mk
 ```
 $ make linux_release
 ```
+The linux release, if build is successful, will be placed inside a
+volume named <proj>_rel, where <proj> is the folder name of your
+project. If you want to extract it you could for instance copy it to
+a local release folder by doing:
+```
+$ docker run --name busybox -v <proj>_rel:/release busybox
+$ docker cp busybox:/release .
+$ docker rm busybox
+```
+
 
 ## Build a docker image of your linux release
 ```
@@ -63,6 +73,13 @@ $ make docker_image
 Suppose you know that your erlang build will require some extra deb-package. In order to add this extra package to the build machine you include it with the EXTRA_PACKAGES variable. Example:
 ```
 $ EXTRA_PACKAGES=libpam0g-dev make docker_image
+```
+
+## cleaning up
+If you are done working on your project and want to get rid of the
+docker volumes the build system has created you can invoke
+```
+$ make cleanup
 ```
 
 ## edocker_erlexec
