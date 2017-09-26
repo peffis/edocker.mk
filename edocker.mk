@@ -130,6 +130,8 @@ docker_image: linux_release
 	  	-f .context/Dockerfile.release \
 		-t $(RELEASE_NAME):$(REL_VSN) .context
 
+	@rm -rf .context
+
 	$(call log_msg,"docker image "$(RELEASE_NAME):$(REL_VSN)" was created")
 
 
