@@ -1,113 +1,150 @@
 DOCKER ?= docker
+NAMESPACE = $(shell basename `pwd`)
 LRM = erlang_linux_release_builder
 MAKER_EXISTS = $(shell $(DOCKER) images -q $(LRM) 2> /dev/null)
-EDOCKER_ROOT = .edocker.mk
-BASE_URL = https://raw.githubusercontent.com/peffis/edocker.mk/master/
-BUILD_SCRIPTS = $(EDOCKER_ROOT)/bin/app $(EDOCKER_ROOT)/bin/mkimage \
-	$(EDOCKER_ROOT)/bin/release_name $(EDOCKER_ROOT)/bin/release_version \
-	$(EDOCKER_ROOT)/bin/system_version $(EDOCKER_ROOT)/bin/version $(EDOCKER_ROOT)/src/edocker_erlexec.c
-DOCKER_FILES = $(EDOCKER_ROOT)/builder/Dockerfile.builder \
-	$(EDOCKER_ROOT)/builder/Dockerfile.release
+ROOT_VOLUME = $(NAMESPACE)_root
+ROOT_MOUNT_POINT = /mnt
+DEPS_VOLUME = $(NAMESPACE)_deps
+DEPS_MOUNT_POINT = $(ROOT_MOUNT_POINT)/deps
+REL_VOLUME = $(NAMESPACE)_rel
+REL_MOUNT_POINT = $(ROOT_MOUNT_POINT)/_rel
+EBIN_VOLUME = $(NAMESPACE)_ebin
+EBIN_MOUNT_POINT = $(ROOT_MOUNT_POINT)/ebin
+EDOCKER_REPO = https://github.com/peffis/edocker.mk.git
 BINARIES_TO_INCLUDE ?=
 EXTRA_PACKAGES ?=
-
 
 define log_msg
 	@printf "\033[1;37m===> "$(1)"\033[0m\n"
 endef
 
-edocker_boot: 	| $(DOCKER_FILES) $(BUILD_SCRIPTS)
+define create_volume
+	$(if $(filter $(shell $(DOCKER) volume inspect $(1) 2> /dev/null), []), \
+		$(call log_msg,"creating "$(1))
+		@$(DOCKER) volume create $(1))
+endef
 
-$(EDOCKER_ROOT):
-	@mkdir -p $(EDOCKER_ROOT)
 
-$(EDOCKER_ROOT)/builder: | $(EDOCKER_ROOT)
-	@mkdir -p $(EDOCKER_ROOT)/builder
+volumes: $(ROOT_VOLUME) $(DEPS_VOLUME) $(REL_VOLUME) $(EBIN_VOLUME)
 
-$(EDOCKER_ROOT)/builder/%: | $(EDOCKER_ROOT)/builder
-	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 
-build_scripts: $(BUILD_SCRIPTS)
+$(ROOT_VOLUME):
+	$(if $(filter $(shell $(DOCKER) volume inspect $(ROOT_VOLUME) 2> /dev/null), []), \
+		$(call create_volume, $(ROOT_VOLUME)); \
+		$(DOCKER) run -d --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+			bravissimolabs/alpine-git git clone -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker > /dev/null 2>&1; \
+		$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT) > /dev/null 2>&1; \
+		$(DOCKER) stop tmp_builder > /dev/null 2>&1; \
+		$(DOCKER) rm tmp_builder > /dev/null 2>&1)
 
-docker_files: $(DOCKER_FILES)
 
-$(EDOCKER_ROOT)/bin: | $(EDOCKER_ROOT)
-	@mkdir -p $(EDOCKER_ROOT)/bin
+$(DEPS_VOLUME):
+	$(call create_volume, $(DEPS_VOLUME))
 
-$(EDOCKER_ROOT)/src: | $(EDOCKER_ROOT)
-	@mkdir -p $(EDOCKER_ROOT)/src
+$(REL_VOLUME):
+	$(call create_volume, $(REL_VOLUME))
 
-$(EDOCKER_ROOT)/bin/%: | $(EDOCKER_ROOT)/bin
-	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	@chmod a+x $@
+$(EBIN_VOLUME):
+	$(call create_volume, $(EBIN_VOLUME))
 
-$(EDOCKER_ROOT)/src/%: | $(EDOCKER_ROOT)/src
-	@echo "GET "$(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
-	@curl -s -o $@ $(BASE_URL)$(@:$(EDOCKER_ROOT)/%=%)
 
-linux_release_build_machine: | edocker_boot
+linux_release_build_machine: volumes
 ifeq ($(strip $(MAKER_EXISTS)),)
-	$(call log_msg,"making linux erlang release builder...")
-	$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM)  \
-		-f $(EDOCKER_ROOT)/builder/Dockerfile.builder $(EDOCKER_ROOT)/builder
+	$(call log_msg,"making linux erlang release builder")
+
+	@$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
+		cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .Dockerfile.builder
+
+	@$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .Dockerfile.builder .
+
+	@rm -f .Dockerfile.builder
 	$(call log_msg,"done")
 endif
 
+
 linux_release: linux_release_build_machine
 	$(call log_msg,"making linux release...")
-	@mkdir -p $(EDOCKER_ROOT)/linux_deps
-	@mkdir -p $(EDOCKER_ROOT)/linux_ebin
-	@mkdir -p $(EDOCKER_ROOT)/linux_rel
-	$(eval RELEASE_NAME := $(shell $(EDOCKER_ROOT)/bin/release_name))
-	$(eval ERTS_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
 
-	$(foreach binary,$(BINARIES_TO_INCLUDE), @$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c "cp \`which ${binary}\` /${RELEASE_NAME}/_rel/${RELEASE_NAME}/bin/";)
+	$(eval RELEASE_NAME := $(shell $(DOCKER) run --rm \
+		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/release_name))
 
-	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && make && ${EDOCKER_ROOT}/bin/mkimage ${BINARIES_TO_INCLUDE}"
+	$(eval ERTS_VERSION := $(shell $(DOCKER) run --rm \
+		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
-	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && gcc -DERTS_VERSION=\\\"${ERTS_VERSION}\\\" -DREL_NAME=\\\"${RELEASE_NAME}\\\" -o _rel/${RELEASE_NAME}/erts-${ERTS_VERSION}/bin/edocker_erlexec /${RELEASE_NAME}/${EDOCKER_ROOT}/src/edocker_erlexec.c"
+	$(foreach binary,$(BINARIES_TO_INCLUDE),\
+		$(DOCKER) run --rm \
+			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
+			$(LRM) bash -c "cp \`which ${binary}\` ${REL_MOUNT_POINT}/${RELEASE_NAME}/bin/";)
 
-	$(call log_msg,"a linux release of the project is now in ${EDOCKER_ROOT}/linux_rel")
+	@$(DOCKER) run  --rm \
+			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
+			-v $(DEPS_VOLUME):$(DEPS_MOUNT_POINT) \
+			-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
+			$(LRM) bash -c "cd ${ROOT_MOUNT_POINT} && make && .edocker/bin/mkimage ${BINARIES_TO_INCLUDE}"
+
+	$(DOCKER) run  --rm \
+			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
+			-v $(DEPS_VOLUME):$(DEPS_MOUNT_POINT) \
+			-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
+			$(LRM) bash -c "gcc -DERTS_VERSION=\\\"${ERTS_VERSION}\\\" -DREL_NAME=\\\"${RELEASE_NAME}\\\" -o ${REL_MOUNT_POINT}/${RELEASE_NAME}/erts-${ERTS_VERSION}/bin/edocker_erlexec ${ROOT_MOUNT_POINT}/.edocker/src/edocker_erlexec.c"
+
+	$(call log_msg,"a linux release of the project is now in volume ${REL_VOLUME}")
+
+
 
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
-	@$(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c \
-		"mkdir -p /$(RELEASE_NAME)/_rel/$(RELEASE_NAME)/etc && echo \"{lookup, [file, dns]}.\" > /$(RELEASE_NAME)/_rel/$(RELEASE_NAME)/etc/erl_inetrc"
-#	@mkdir -p $(EDOCKER_ROOT)/linux_rel/$(RELEASE_NAME)/etc
-#	@echo "{lookup, [file, dns]}." > $(EDOCKER_ROOT)/linux_rel/$(RELEASE_NAME)/etc/erl_inetrc
-	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) erlang /$(RELEASE_NAME)/$(EDOCKER_ROOT)/bin/system_version))
-	$(eval REL_VSN := $(shell $(DOCKER) run -v `pwd`:/$(RELEASE_NAME) \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_deps:/$(RELEASE_NAME)/deps \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_ebin:/$(RELEASE_NAME)/ebin \
-		-v `pwd`/$(EDOCKER_ROOT)/linux_rel:/$(RELEASE_NAME)/_rel \
-		-it $(LRM) bash -c \
-		"cd /${RELEASE_NAME} && ${EDOCKER_ROOT}/bin/version"))
+
+	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) erlang \
+		$(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
+
+	$(eval REL_VSN := $(shell $(DOCKER) run --rm \
+		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+		-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
+		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/version))
+
+	@$(DOCKER) run \
+		--name $(NAMESPACE)_$(LRM) \
+		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+		-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
+		-v $(DEPS_VOLUME):$(DEPS_MOUNT_POINT) \
+		-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
+		$(LRM) bash -c \
+		"mkdir -p $(REL_MOUNT_POINT)/$(RELEASE_NAME)/etc && echo \"{lookup, [file, dns]}.\" > $(REL_MOUNT_POINT)/$(RELEASE_NAME)/etc/erl_inetrc"
+
+	@rm -rf .context
+	@mkdir .context
+
+	@$(DOCKER) cp $(NAMESPACE)_$(LRM):$(REL_MOUNT_POINT) .context/
+	@$(DOCKER) cp $(NAMESPACE)_$(LRM):$(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.release .context/
+	@$(DOCKER) stop $(NAMESPACE)_$(LRM)
+	@$(DOCKER) rm $(NAMESPACE)_$(LRM)
+
 	@$(DOCKER) build \
 		--build-arg REL_NAME=$(RELEASE_NAME) \
 		--build-arg ERTS_VSN=$(SYSTEM_VERSION) \
 		--pull=true \
 		--no-cache=true \
 		--force-rm=true \
-	  	-f $(EDOCKER_ROOT)/builder/Dockerfile.release \
-		-t $(RELEASE_NAME):$(REL_VSN) .
+	  	-f .context/Dockerfile.release \
+		-t $(RELEASE_NAME):$(REL_VSN) .context
+
 	$(call log_msg,"docker image "$(RELEASE_NAME):$(REL_VSN)" was created")
+
+
+cleanup:
+	$(foreach c, $(shell $(DOCKER) ps -a -q -f status=exited), \
+		$(DOCKER) rm -f $(c);)
+
+ifneq ($(strip $(MAKER_EXISTS)),)
+	@$(DOCKER) rmi -f $(LRM) || true
+endif
+	@$(DOCKER) volume inspect $(ROOT_VOLUME) >/dev/null 2>&1 && $(DOCKER) volume remove $(ROOT_VOLUME) || true
+	@$(DOCKER) volume inspect $(DEPS_VOLUME) >/dev/null 2>&1 && $(DOCKER) volume remove $(DEPS_VOLUME) || true
+	@$(DOCKER) volume inspect $(REL_VOLUME) >/dev/null 2>&1 && $(DOCKER) volume remove $(REL_VOLUME) || true
+	@$(DOCKER) volume inspect $(EBIN_VOLUME) >/dev/null 2>&1 && $(DOCKER) volume remove $(EBIN_VOLUME) || true

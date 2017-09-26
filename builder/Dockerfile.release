@@ -18,4 +18,4 @@ ENV TZ=GMT
 
 ENTRYPOINT exec ${BINDIR}/edocker_erlexec
 
-ADD .edocker.mk/linux_rel/${REL_NAME}/ /
+ADD _rel/${REL_NAME}/ /
