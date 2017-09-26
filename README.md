@@ -18,7 +18,7 @@ release for your project.
 
 When running erlang releases inside docker you might also want a more
 flexible way of controlling erlang arguments such as cookie and node
-names throug environment variables rather than through scripts and
+names through environment variables rather than through scripts and
 command line arguments as is normally used in erlang. For this purpose
 this repository also contains a wrapper program around erlexec that
 reads environment variables and translates them to command line
