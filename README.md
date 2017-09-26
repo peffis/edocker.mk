@@ -53,10 +53,10 @@ include edocker.mk
 ```
 $ make linux_release
 ```
-The linux release, if build is successful, will be placed inside a
+The linux release, if the build is successful, will be placed inside a docker
 volume named &lt;proj&gt;_rel, where &lt;proj&gt; is the folder name of your
 project. If you want to extract it you could for instance copy it to
-a local release folder by doing:
+a folder, say _release_, on your host machine, by doing:
 ```
 $ docker run --name busybox -v <proj>_rel:/release busybox
 $ docker cp busybox:/release .
