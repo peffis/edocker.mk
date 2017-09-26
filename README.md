@@ -68,6 +68,10 @@ $ docker rm busybox
 ```
 $ make docker_image
 ```
+The resulting docker image, if the build is successful, will be named
+&lt;proj&gt;, where &lt;proj&gt; is how you named your release in your
+relx.config. The image will be tagged with the version you have in
+your .app.src in your erlang src folder.
 
 ## Adding extra packages to the build machine
 Suppose you know that your erlang build will require some extra deb-package. In order to add this extra package to the build machine you include it with the EXTRA_PACKAGES variable. Example:
