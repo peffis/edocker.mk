@@ -3,7 +3,7 @@ NAMESPACE = $(shell basename `pwd`)
 LRM = erlang_linux_release_builder
 MAKER_EXISTS = $(shell $(DOCKER) images -q $(LRM) 2> /dev/null)
 ROOT_VOLUME = $(NAMESPACE)_root
-ROOT_MOUNT_POINT = /mnt
+ROOT_MOUNT_POINT = /$(NAMESPACE)
 DEPS_VOLUME = $(NAMESPACE)_deps
 DEPS_MOUNT_POINT = $(ROOT_MOUNT_POINT)/deps
 REL_VOLUME = $(NAMESPACE)_rel
@@ -18,49 +18,54 @@ define log_msg
 	@printf "\033[1;37m===> "$(1)"\033[0m\n"
 endef
 
-define create_volume
-	$(if $(filter $(shell $(DOCKER) volume inspect $(1) 2> /dev/null), []), \
-		$(call log_msg,"creating "$(1))
-		@$(DOCKER) volume create $(1))
-endef
-
 
 volumes: $(ROOT_VOLUME) $(DEPS_VOLUME) $(REL_VOLUME) $(EBIN_VOLUME)
 
 
 $(ROOT_VOLUME):
-	$(call create_volume, $(ROOT_VOLUME))
-	@$(DOCKER) run -d --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git echo
-	@$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT)
-	@$(DOCKER) stop tmp_builder
-	@$(DOCKER) rm tmp_builder
+	$(call log_msg,"creating "$(ROOT_VOLUME)" volume")
+	@if [ `$(DOCKER) volume inspect $(ROOT_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
+		$(DOCKER) volume create $(ROOT_VOLUME); \
+	fi
+	@$(DOCKER) run --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git echo > /dev/null 2>&1
+	@$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT) > /dev/null 2>&1
+	@$(DOCKER) stop tmp_builder > /dev/null 2>&1
+	@$(DOCKER) rm tmp_builder > /dev/null 2>&1
 
 
 $(DEPS_VOLUME):
-	$(call create_volume, $(DEPS_VOLUME))
+	$(call log_msg,"creating "$(DEPS_VOLUME)" volume")
+	@if [ `$(DOCKER) volume inspect $(DEPS_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
+		$(DOCKER) volume create $(DEPS_VOLUME); \
+	fi
 
 $(REL_VOLUME):
-	$(call create_volume, $(REL_VOLUME))
+	$(call log_msg,"creating "$(REL_VOLUME)" volume")
+	@if [ `$(DOCKER) volume inspect $(REL_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
+		$(DOCKER) volume create $(REL_VOLUME); \
+	fi
 
 $(EBIN_VOLUME):
-	$(call create_volume, $(EBIN_VOLUME))
+	$(call log_msg,"creating "$(EBIN_VOLUME)" volume")
+	@if [ `$(DOCKER) volume inspect $(EBIN_VOLUME) 2> /dev/null | head -1` = "[]" ]; then \
+		$(DOCKER) volume create $(EBIN_VOLUME); \
+	fi
 
 
 linux_release_build_machine: volumes
-ifeq ($(strip $(MAKER_EXISTS)),)
-	$(call log_msg,"making linux erlang release builder")
-
-	$(DOCKER) run -d --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-		bravissimolabs/alpine-git git clone -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker
-
-	$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
-		cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .Dockerfile.builder
-
-	@$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .Dockerfile.builder .
-
-	@rm -f .Dockerfile.builder
-	$(call log_msg,"done")
-endif
+	$(call log_msg,"making linux build machine...")
+	@if [ `$(DOCKER) images -q $(LRM) 2> /dev/null`"abc" = "abc" ]; then \
+		echo "rebuilding release machine"; \
+		echo "cloning edocker repo"; \
+		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
+			git clone --verbose --progress -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker; \
+		echo "copying Dockerfile.builder"; \
+		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
+			cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .Dockerfile.builder; \
+		echo "building docker image"; \
+		$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .Dockerfile.builder .; \
+		rm -f .Dockerfile.builder; \
+	fi
 
 
 linux_release: linux_release_build_machine
@@ -87,7 +92,7 @@ linux_release: linux_release_build_machine
 			-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
 			$(LRM) bash -c "cd ${ROOT_MOUNT_POINT} && make && .edocker/bin/mkimage ${BINARIES_TO_INCLUDE}"
 
-	$(DOCKER) run  --rm \
+	@$(DOCKER) run  --rm \
 			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
 			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
 			-v $(DEPS_VOLUME):$(DEPS_MOUNT_POINT) \
