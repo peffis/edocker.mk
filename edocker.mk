@@ -29,13 +29,11 @@ volumes: $(ROOT_VOLUME) $(DEPS_VOLUME) $(REL_VOLUME) $(EBIN_VOLUME)
 
 
 $(ROOT_VOLUME):
-	$(if $(filter $(shell $(DOCKER) volume inspect $(ROOT_VOLUME) 2> /dev/null), []), \
-		$(call create_volume, $(ROOT_VOLUME)); \
-		$(DOCKER) run -d --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-			bravissimolabs/alpine-git git clone -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker > /dev/null 2>&1; \
-		$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT) > /dev/null 2>&1; \
-		$(DOCKER) stop tmp_builder > /dev/null 2>&1; \
-		$(DOCKER) rm tmp_builder > /dev/null 2>&1)
+	$(call create_volume, $(ROOT_VOLUME))
+	@$(DOCKER) run -d --name tmp_builder -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git echo
+	@$(DOCKER) cp . tmp_builder:$(ROOT_MOUNT_POINT)
+	@$(DOCKER) stop tmp_builder
+	@$(DOCKER) rm tmp_builder
 
 
 $(DEPS_VOLUME):
@@ -52,7 +50,10 @@ linux_release_build_machine: volumes
 ifeq ($(strip $(MAKER_EXISTS)),)
 	$(call log_msg,"making linux erlang release builder")
 
-	@$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
+	$(DOCKER) run -d --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+		bravissimolabs/alpine-git git clone -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker
+
+	$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 		cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .Dockerfile.builder
 
 	@$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .Dockerfile.builder .
