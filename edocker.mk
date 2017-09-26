@@ -1,6 +1,6 @@
 DOCKER ?= docker
 NAMESPACE = $(shell basename `pwd`)
-LRM = erlang_linux_release_builder
+LRM = $(NAMESPACE)_erlang_linux_release_builder
 MAKER_EXISTS = $(shell $(DOCKER) images -q $(LRM) 2> /dev/null)
 ROOT_VOLUME = $(NAMESPACE)_root
 ROOT_MOUNT_POINT = /$(NAMESPACE)
