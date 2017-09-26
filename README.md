@@ -1,6 +1,30 @@
 # edocker.mk
 An erlang linux release/docker image builder
 
+## Overview
+Some people have a need to shrink the sizes of their Docker images. If
+you, instead of packaging an Erlang release into some Ubuntu or Alpine
+image, you only add the release to the scratch image you reduce the
+size from several hundred MB to perhaps 20-30MB (depending on the size
+of your erlang release). The tools in this repository help you to
+create that release so that it still can run inside the scratch
+image.
+
+Despite the size there could be other reasons why building erlang
+releases through Docker might be useful. If your target platform is
+linux and you are developing the service on some other platform (say
+OSX) the tools in this repository could help you create that linux
+release for your project.
+
+When running erlang releases inside docker you might also want a more
+flexible way of controlling erlang arguments such as cookie and node
+names throug environment variables rather than through scripts and
+command line arguments as is normally used in erlang. For this purpose
+this repository also contains a wrapper program around erlexec that
+reads environment variables and translates them to command line
+arguments.
+
+
 ## Inspiration
 The build scripts in the *bin* folder are derived from Peter Morgan's [Erlang in Docker From Scratch](https://github.com/shortishly/erlang-in-docker-from-scratch). The purpose of the work in this repository
 is to integrate Peter's way of building erlang docker images with erlang.mk in a reusable manner, making it
