@@ -47,14 +47,15 @@ linux_release_build_machine: volumes
 	@if [ `$(DOCKER) images -q $(LRM) 2> /dev/null`"abc" = "abc" ]; then \
 		echo "rebuilding release machine"; \
 		echo "cloning edocker repo"; \
+		mkdir .tmp_context; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 			git clone --verbose --progress -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker; \
 		echo "copying Dockerfile.builder"; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 			cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .Dockerfile.builder; \
 		echo "building docker image"; \
-		$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .Dockerfile.builder .; \
-		rm -f .Dockerfile.builder; \
+		$(DOCKER) build --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .tmp_context/Dockerfile.builder .tmp_context; \
+		rm -rf .tmp_context; \
 	fi
 
 
