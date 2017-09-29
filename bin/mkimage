@@ -40,6 +40,10 @@ for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/pri
     echo "copying "$lib" to "${RELEASE}$lib
 done
 
+echo "ldd _rel/scapi/lib/bcrypt-git/priv/bcrypt_nif.so:"
+echo `ldd _rel/scapi/lib/bcrypt-git/priv/bcrypt_nif.so`
+echo
+
 # ensure that the link loader is present
 mkdir -p ${RELEASE}/lib64
 cp /lib64/ld-linux*.so.* ${RELEASE}/lib64
