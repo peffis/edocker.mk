@@ -33,16 +33,10 @@ do
 done
 
 # copy any dynamically linked libaries used by ERTS into release
-echo "about to examine:" _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]}
 for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
     mkdir -p $(dirname ${RELEASE}$lib)
     cp -Lv $lib ${RELEASE}$lib
-    echo "copying "$lib" to "${RELEASE}$lib
 done
-
-echo "ldd _rel/scapi/lib/bcrypt-git/priv/bcrypt_nif.so:"
-echo `ldd _rel/scapi/lib/bcrypt-git/priv/bcrypt_nif.so`
-echo
 
 # ensure that the link loader is present
 mkdir -p ${RELEASE}/lib64
