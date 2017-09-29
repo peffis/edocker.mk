@@ -33,9 +33,11 @@ do
 done
 
 # copy any dynamically linked libaries used by ERTS into release
-for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/* _rel/*/lib/*/priv/* $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
+echo "about to examine:" _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]}
+for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
     mkdir -p $(dirname ${RELEASE}$lib)
     cp -Lv $lib ${RELEASE}$lib
+    echo "copying "$lib" to "${RELEASE}$lib
 done
 
 # ensure that the link loader is present
