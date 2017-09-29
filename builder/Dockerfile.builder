@@ -1,4 +1,4 @@
-FROM erlang
+FROM erlang:19
 
 ARG EXTRA_PACKAGES=
 WORKDIR /workdir
