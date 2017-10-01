@@ -51,7 +51,7 @@ linux_release_build_machine: volumes
 		echo "cloning edocker repo"; \
 		mkdir .tmp_context; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
-			git clone --verbose --progress -b using_volumes $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker; \
+			git clone --verbose --progress $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker; \
 		echo "copying Dockerfile.builder"; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 			cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .tmp_context/Dockerfile.builder; \
