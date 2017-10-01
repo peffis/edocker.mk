@@ -72,18 +72,18 @@ linux_release: linux_release_build_machine
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
 		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
-	$(foreach binary,$(BINARIES_TO_INCLUDE),\
-		$(DOCKER) run --rm \
-			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
-			$(LRM) bash -c "cp \`which ${binary}\` ${REL_MOUNT_POINT}/${RELEASE_NAME}/bin/";)
-
 	@$(DOCKER) run  --rm \
 			-v $(ROOT_VOLUME):/$(RELEASE_NAME) \
 			-v $(REL_VOLUME):/$(RELEASE_NAME)/_rel \
 			-v $(DEPS_VOLUME):/$(RELEASE_NAME)/deps \
 			-v $(EBIN_VOLUME):/$(RELEASE_NAME)/ebin \
 			$(LRM) bash -c "cd /${RELEASE_NAME} && make && .edocker/bin/mkimage ${BINARIES_TO_INCLUDE}"
+
+	$(foreach binary,$(BINARIES_TO_INCLUDE),\
+		$(DOCKER) run --rm \
+			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
+			-v $(REL_VOLUME):$(REL_MOUNT_POINT) \
+			$(LRM) bash -c "mkdir -p ${REL_MOUNT_POINT}/${RELEASE_NAME}/bin && cp \`which ${binary}\` ${REL_MOUNT_POINT}/${RELEASE_NAME}/bin/";)
 
 	@$(DOCKER) run  --rm \
 			-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
