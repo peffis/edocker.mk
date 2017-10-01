@@ -7,5 +7,5 @@ WORKDIR /workdir
 
 RUN apt-get update && apt-get -y install software-properties-common
 RUN for r in $EXTRA_PPAS; do add-apt-repository -y $r; done
-RUN echo "${SOURCES_LIST_APPEND}" >> /etc/apt/sources.list
+RUN printf "${SOURCES_LIST_APPEND}" >> /etc/apt/sources.list
 RUN apt-get update && apt-get -y install $EXTRA_PACKAGES erlang-dev
