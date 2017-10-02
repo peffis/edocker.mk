@@ -140,7 +140,9 @@ If your erlang release will call other binaries (such as
 os:cmd("ffmpeg")) you want to copy those binaries from the build
 machine to the final docker image. You do that by setting the
 BINARIES_TO_INCLUDE environment variable in the Makefile and they will
-then be copied to the _release_/bin folder.
+then be copied to the _release_/bin folder (any shared object that the
+binary is depending on will be copied to the lib folder so that the
+binary can be loaded when run later).
 
 Example
 ```Makefile
