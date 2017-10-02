@@ -97,10 +97,42 @@ The resulting docker image, if the build is successful, will be named
 relx.config. The image will be tagged with the version you have in
 your .app.src in your erlang src folder.
 
-## Adding extra packages to the build machine
-Suppose you know that your erlang build will require some extra deb-package. In order to add this extra package to the build machine you include it with the EXTRA_PACKAGES variable. Example:
+## Configuring the erlang linux build machine
+At the time of writing the [erlang docker
+image](https://hub.docker.com/_/erlang/) is based on Debian Jessie. If
+your build process has dependencies to additional ppa:s, additional
+lines in /etc/apt/sources.list or if you just need to apt-get a few
+more extra packages to be able to build your erlang release this is
+all configurable.
+
+### Adding additional PPA:s
+Add PPA:s by setting the environment variable EXTRA_PPAS in your
+makefile
+
+Example:
+```Makefile
+EXTRA_PPAS = ppa:some/ppa
 ```
-$ EXTRA_PACKAGES=libpam0g-dev make docker_image
+
+### Additions to /etc/apt/sources.list
+You can also add repositories to /etc/apt/sources.list by specifying
+what to append to the file with the variable SOURCES_LIST_APPEND
+
+Example:
+```Makefile
+SOURCES_LIST_APPEND = deb http://ftp.uk.debian.org/debian jessie-backports main\ndeb http://www.deb-multimedia.org jessie main non-free
+```
+
+### Installing additional software on the build machine
+Suppose you know that your erlang build will require some extra
+deb-package. In order to add this extra package (assuming that you
+have added additional ppa:s or lines to sources.list above if that is
+needed) to the build machine you include it with the EXTRA_PACKAGES
+variable in your Makefile.
+
+Example:
+```Makefile
+EXTRA_PACKAGES = deb-multimedia-keyring libpam0g-dev ffmpeg x264
 ```
 
 ## cleaning up
