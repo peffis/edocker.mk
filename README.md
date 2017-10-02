@@ -135,6 +135,18 @@ Example:
 EXTRA_PACKAGES = deb-multimedia-keyring libpam0g-dev ffmpeg x264
 ```
 
+## Adding binaries to the runtime
+If your erlang release will call other binaries (such as
+os:cmd("ffmpeg")) you want to copy those binaries from the build
+machine to the final docker image. You do that by setting the
+BINARIES_TO_INCLUDE environment variable in the Makefile and they will
+then be copied to the _release_/bin folder.
+
+Example
+```Makefile
+BINARIES_TO_INCLUDE = ffmpeg ls bash
+```
+
 ## cleaning up
 If you are done working on your project and want to get rid of the
 docker volumes the build system has created you can invoke
