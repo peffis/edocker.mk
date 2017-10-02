@@ -56,7 +56,7 @@ linux_release_build_machine: volumes
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 			cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .tmp_context/Dockerfile.builder; \
 		echo "building docker image"; \
-		$(DOCKER) build --build-arg SOURCES_LIST_APPEND="\"${SOURCES_LIST_APPEND}\"" --build-arg EXTRA_PPAS="${EXTRA_PPAS}" --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .tmp_context/Dockerfile.builder .tmp_context; \
+		$(DOCKER) build --build-arg SOURCES_LIST_APPEND="${SOURCES_LIST_APPEND}" --build-arg EXTRA_PPAS="${EXTRA_PPAS}" --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .tmp_context/Dockerfile.builder .tmp_context; \
 		rm -rf .tmp_context; \
 	fi
 
@@ -66,11 +66,11 @@ linux_release: linux_release_build_machine
 
 	$(eval RELEASE_NAME := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/release_name))
+		erlang:19 $(ROOT_MOUNT_POINT)/.edocker/bin/release_name))
 
 	$(eval ERTS_VERSION := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
+		erlang:19 $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
 	@$(DOCKER) run  --rm \
 			-v $(ROOT_VOLUME):/$(RELEASE_NAME) \
@@ -99,13 +99,13 @@ linux_release: linux_release_build_machine
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
 
-	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) erlang \
+	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) erlang:19 \
 		$(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
 	$(eval REL_VSN := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
 		-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
-		erlang $(ROOT_MOUNT_POINT)/.edocker/bin/version))
+		erlang:19 $(ROOT_MOUNT_POINT)/.edocker/bin/version))
 
 	@$(DOCKER) run \
 		--name $(NAMESPACE)_$(LRM) \
