@@ -44,11 +44,7 @@ artefact_volumes:
 			printf "created " && $(DOCKER) volume create $(v); \
 		fi;)
 
-.PHONY: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder
-$(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder.in
-	sed 's/TAG/$(ERLANG_VERSION)/' $< > $@ || rm -f $@
-
-linux_release_build_machine: volumes $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder
+linux_release_build_machine: volumes
 	$(call log_msg,"checking linux build machine")
 	@if [ `$(DOCKER) images -q $(LRM) 2> /dev/null`"abc" = "abc" ]; then \
 		echo "rebuilding release machine"; \
@@ -56,9 +52,9 @@ linux_release_build_machine: volumes $(ROOT_MOUNT_POINT)/.edocker/builder/Docker
 		mkdir .tmp_context; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
 			git clone --verbose --progress $(EDOCKER_REPO) $(ROOT_MOUNT_POINT)/.edocker; \
-		echo "copying Dockerfile.builder"; \
+		echo "making Dockerfile.builder"; \
 		$(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) bravissimolabs/alpine-git \
-			cat $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder > .tmp_context/Dockerfile.builder; \
+			sed 's/TAG/$(ERLANG_VERSION)/' $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder.in > .tmp_context/Dockerfile.builder; \
 		echo "building docker image"; \
 		$(DOCKER) build --build-arg SOURCES_LIST_APPEND="${SOURCES_LIST_APPEND}" --build-arg EXTRA_PPAS="${EXTRA_PPAS}" --build-arg EXTRA_PACKAGES="${EXTRA_PACKAGES}" -t $(LRM) -f .tmp_context/Dockerfile.builder .tmp_context; \
 		rm -rf .tmp_context; \
