@@ -46,9 +46,9 @@ artefact_volumes:
 
 .PHONY: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder
 $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder.in
-    sed 's/TAG/$(ERLANG_VERSION)/' $< > $@ || rm -f $@
+	sed 's/TAG/$(ERLANG_VERSION)/' $< > $@ || rm -f $@
 
-linux_release_build_machine: volumes
+linux_release_build_machine: volumes $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder
 	$(call log_msg,"checking linux build machine")
 	@if [ `$(DOCKER) images -q $(LRM) 2> /dev/null`"abc" = "abc" ]; then \
 		echo "rebuilding release machine"; \
