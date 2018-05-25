@@ -1,5 +1,5 @@
 DOCKER ?= docker
-ERLANG_IMG ?= erlang:19
+ERLANG_VERSION ?= 19
 NAMESPACE = $(shell basename `pwd`)
 LRM = $(NAMESPACE)_erlang_linux_release_builder
 MAKER_EXISTS = $(shell $(DOCKER) images -q $(LRM) 2> /dev/null)
@@ -44,6 +44,9 @@ artefact_volumes:
 			printf "created " && $(DOCKER) volume create $(v); \
 		fi;)
 
+.PHONY: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder
+$(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder: $(ROOT_MOUNT_POINT)/.edocker/builder/Dockerfile.builder.in
+    sed 's/TAG/$(ERLANG_VERSION)/' $< > $@ || rm -f $@
 
 linux_release_build_machine: volumes
 	$(call log_msg,"checking linux build machine")
@@ -67,11 +70,11 @@ linux_release: linux_release_build_machine
 
 	$(eval RELEASE_NAME := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-		$(ERLANG_IMG) $(ROOT_MOUNT_POINT)/.edocker/bin/release_name))
+		erlang:$(ERLANG_VERSION) $(ROOT_MOUNT_POINT)/.edocker/bin/release_name))
 
 	$(eval ERTS_VERSION := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
-		$(ERLANG_IMG) $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
+		erlang:$(ERLANG_VERSION) $(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
 	@$(DOCKER) run  --rm \
 			-v $(ROOT_VOLUME):/$(RELEASE_NAME) \
@@ -100,13 +103,13 @@ linux_release: linux_release_build_machine
 docker_image: linux_release
 	$(call log_msg,"making docker image...")
 
-	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) $(ERLANG_IMG) \
+	$(eval SYSTEM_VERSION := $(shell $(DOCKER) run --rm -v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) erlang:$(ERLANG_VERSION) \
 		$(ROOT_MOUNT_POINT)/.edocker/bin/system_version))
 
 	$(eval REL_VSN := $(shell $(DOCKER) run --rm \
 		-v $(ROOT_VOLUME):$(ROOT_MOUNT_POINT) \
 		-v $(EBIN_VOLUME):$(EBIN_MOUNT_POINT) \
-		$(ERLANG_IMG) $(ROOT_MOUNT_POINT)/.edocker/bin/version))
+		erlang:$(ERLANG_VERSION) $(ROOT_MOUNT_POINT)/.edocker/bin/version))
 
 	@$(DOCKER) run \
 		--name $(NAMESPACE)_$(LRM) \

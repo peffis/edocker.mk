@@ -1,4 +1,4 @@
-FROM erlang:19
+FROM erlang:${TAG}
 
 ARG EXTRA_PPAS=
 ARG EXTRA_PACKAGES=
