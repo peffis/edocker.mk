@@ -4,9 +4,9 @@
 
 /**********************************************************
  * simple erlang runner for the edocker release image
- * 
- * it currently allows you to set cookie, name and host as 
- * environment variables name and host will be joined 
+ *
+ * it currently allows you to set cookie, name and host as
+ * environment variables name and host will be joined
  * as name@host to form the -name argument to erlexec
  **********************************************************/
 
@@ -36,7 +36,7 @@ main() {
 	char boot[MAX_PATH];
 	char config[MAX_PATH];
 	char name_arg[MAX_NAME];
-	char *argv[13];
+	char *argv[15];
 
 	/* -boot_var argument */
 	argv[0] = "-boot_var"; argv[1] = "ERTS_LIB_DIR"; argv[2] = "/lib";
@@ -51,17 +51,23 @@ main() {
 
 	/* -setcookie argument */
 	argv[7] = "-setcookie"; argv[8] = getenv("EDOCKER_COOKIE");
-	
+
 	/* -name argument */
 	sprintf(name_arg, "%s@%s", getenv("EDOCKER_NAME"), getenv("EDOCKER_HOST"));
 	argv[9] = "-name"; argv[10] = name_arg;
 
 	/* -noinput */
-	argv[11] = "-noinput"; 
+	argv[11] = "-noinput";
 
-
-
-	argv[12] = NULL;
+        /* +P n argument, if specified */
+        char *n_processes = getenv("N_PROCESSES");
+        if (n_processes == NULL) {
+                argv[12] = NULL;
+        } else {
+                argv[12] = "+P";
+                argv[13] = n_processes;
+                argv[14] = NULL;
+        }
 
 	sprintf(path, "%s/erlexec", BINDIR);
 
@@ -73,7 +79,6 @@ main() {
 		fprintf(stderr, "%s%s", argv[i], argv[i+1] != NULL ? " " : "\n");
 		i++;
 	}
-	
+
 	return execv(path, argv);
 }
-  
