@@ -30,7 +30,7 @@ for b in "$@"
 do
     echo "analyzing ${b}"
     BINARIES[$i]=`which $b`
-    ((++1))
+    ((++i))
 done
 
 echo "all binaries ${BINARIES[@]}"
