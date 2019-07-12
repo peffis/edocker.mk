@@ -35,14 +35,14 @@ done
 
 echo "all binaries ${BINARIES[@]}"
 
+# copy all...
+cp -aLv /usr/lib ${RELEASE}/usr/lib
+
 # copy any dynamically linked libaries used by ERTS into release
 for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
     mkdir -p $(dirname ${RELEASE}$lib)
     cp -Lv $lib ${RELEASE}$lib
 done
-
-# copy all...
-cp -aLv /usr/lib/x86_64-linux-gnu ${RELEASE}/usr/lib/x86_64-linux-gnu
 
 # ensure that the link loader is present
 mkdir -p ${RELEASE}/lib64
