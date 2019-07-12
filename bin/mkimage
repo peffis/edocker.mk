@@ -28,9 +28,12 @@ i=0
 BINARIES=()
 for b in "$@"
 do
+    echo "analyzing ${b}"
     BINARIES[$i]=`which $b`
     ((++1))
 done
+
+echo "all binaries ${BINARIES[@]}"
 
 # copy any dynamically linked libaries used by ERTS into release
 for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do
