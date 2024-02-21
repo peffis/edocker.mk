@@ -33,10 +33,9 @@ do
     ((++i))
 done
 
-echo "all binaries ${BINARIES[@]}"
+# create bin dir if not exist
+mkdir -p ${RELEASE}/bin
 
-# copy all...
-#cp -aLv /usr/lib ${RELEASE}/usr/lib
 
 # copy any dynamically linked libaries used by ERTS into release
 for lib in $(ldd _rel/*/erts-*/bin/* _rel/*/lib/*/priv/lib/*.so _rel/*/lib/*/priv/*.so $(which sh) ${BINARIES[@]} 2>/dev/null|grep "=>"|awk '{print $3}'|sort|uniq); do

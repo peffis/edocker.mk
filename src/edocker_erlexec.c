@@ -39,10 +39,10 @@ main() {
 	char *argv[15];
 
 	/* -boot_var argument */
-	argv[0] = "-boot_var"; argv[1] = "ERTS_LIB_DIR"; argv[2] = "/lib";
+	argv[0] = "-boot_var"; argv[1] = "SYSTEM_LIB_DIR"; argv[2] = "/lib";
 
 	/* -boot argument */
-	sprintf(boot, "/releases/1/%s", REL_NAME);
+	sprintf(boot, "/releases/1/%s", "start");
 	argv[3] = "-boot"; argv[4] = boot;
 
 	/* -config argument */
