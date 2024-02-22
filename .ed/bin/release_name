@@ -1,0 +1,24 @@
+#!/usr/bin/env escript
+
+main([]) ->
+    io:format("~s~n",
+              lists:foldl(
+                fun
+                    ({release, {Name, _Version}, _}, A) ->
+                        [Name | A];
+
+                    (_, A) ->
+                        A
+                end,
+                [],
+                relx())).
+
+root_dir() ->
+    filename:dirname(filename:dirname(escript:script_name())).
+
+config() ->
+    filename:join([root_dir(),"../relx.config"]).
+
+relx() ->
+    {ok, Configuration} = file:consult(config()),
+    Configuration.

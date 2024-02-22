@@ -1,0 +1,16 @@
+#!/usr/bin/env escript
+
+main([]) ->
+    {application, Name, _} = application(),
+    io:format("~w~n", [Name]).
+
+root_dir() ->
+    filename:dirname(filename:dirname(escript:script_name())).
+
+app() ->
+    [Filename] = filelib:wildcard(filename:join([root_dir(),"../ebin/*.app"])),
+    Filename.
+
+application() ->
+    {ok, [{application, _, _} = Application]} = file:consult(app()),
+    Application.

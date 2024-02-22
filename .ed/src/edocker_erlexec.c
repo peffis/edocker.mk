@@ -14,11 +14,11 @@
 #define MAX_NAME 256
 
 #ifndef ERTS_VERSION
-#define ERTS_VERSION "8.2"
+#define ERTS_VERSION "14.2.2"
 #endif
 
 #ifndef REL_VSN
-#define REL_VSN "0.1.0"
+#define REL_VSN "1"
 #endif
 
 #ifndef REL_NAME
@@ -42,7 +42,7 @@ main() {
 	argv[0] = "-boot_var"; argv[1] = "SYSTEM_LIB_DIR"; argv[2] = "/lib";
 
 	/* -boot argument */
-	sprintf(boot, "/releases/1/%s", "start");
+	sprintf(boot, "/releases/%s/%s", REL_VSN, "start");
 	argv[3] = "-boot"; argv[4] = boot;
 
 	/* -config argument */

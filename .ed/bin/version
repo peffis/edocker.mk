@@ -1,0 +1,16 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+
+main([]) ->
+    io:format("~s~n", [version()]).
+
+root_dir() ->
+    filename:dirname(filename:dirname(escript:script_name())).
+
+app() ->
+    [Filename] = filelib:wildcard(filename:join([root_dir(),"../ebin/*.app"])),
+    Filename.
+
+version() ->
+    {ok, [{application, _, Properties}]} = file:consult(app()),
+    proplists:get_value(vsn, Properties).
