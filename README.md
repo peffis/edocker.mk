@@ -81,7 +81,7 @@ include edocker.mk
 
 ## Build a docker container
 ```
-$ make docker
+$ make docker_image
 ```
 The resulting docker image, if the build is successful, will be named
 &lt;proj&gt;, where &lt;proj&gt; is how you named your release in your

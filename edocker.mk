@@ -83,4 +83,4 @@ erelease_image: ebuilder
 	$(eval BINDIR := /erts-${ERTS_VSN}/bin)
 	@ eval "$$make_release_image"
 
-docker: erelease_image
+docker_image: erelease_image
