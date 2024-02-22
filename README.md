@@ -55,9 +55,10 @@ a *Makefile* (this could possibly work also with rebar with some minor
 modifications to the line that currently reads "RUN make RELX_TAR=0"
 which is the line that builds the release with erlang.mk), something like...
 ```
-PROJECT = my_project
-PROJECT_DESCRIPTION = Some project
+PROJECT = hello_joe
+PROJECT_DESCRIPTION = Hello Joe
 PROJECT_VERSION = 0.1.0
+BUILD_DEPS += relx
 
 include erlang.mk
 ```
