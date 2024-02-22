@@ -46,7 +46,7 @@ main() {
 	argv[3] = "-boot"; argv[4] = boot;
 
 	/* -config argument */
-	sprintf(config, "/releases/1/sys.config");
+	sprintf(config, "/releases/%s/sys.config", REL_VSN);
 	argv[5] = "-config"; argv[6] = config;
 
 	/* -setcookie argument */

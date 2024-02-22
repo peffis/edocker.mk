@@ -53,7 +53,7 @@ endef
 export make_builder
 
 define make_release_image
-${DOCKER} build -t ${PROJECT_NAME}:${TAG} . -f - <<EOF
+${DOCKER} build -t ${REL_NAME}:${TAG} . -f - <<EOF
 FROM scratch
 MAINTAINER Stefan Hellkvist <hellkvist@gmail.com>
 ENV BOOT /releases/${REL_VSN}/start
