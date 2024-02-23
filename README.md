@@ -146,6 +146,22 @@ Example
 BINARIES_TO_INCLUDE = ffmpeg ls bash
 ```
 
+## Configuring the APP_NAME
+erlang.mk has an
+[issue](https://github.com/ninenines/erlang.mk/issues/991) to build
+releases if the folder name you have as your current dir is not the
+same as the app name. This becomes a problem for instance if some
+CI/CD tool clones your repository into a new folder name that does not
+match your app name. To work around this you can either specify the
+APP_NAME as an argument to the make command and the build system will
+use this name as root folder when building the release in docker, or
+you could also let edocker.mk try to figuring out by looking at
+ebin/*.app or src/*.app.src. This automatic app name detection seems
+to work but it is based on some sed regex parsing of the files
+(because the erlang vm might not be available in the environment where
+the make command is executed) so it could perhaps break if your *.app
+or *.app.src looks different than the ones tried so far.
+
 ## edocker_erlexec
 This repository also includes an alternative binary for bootstrapping
 the erlang vm - edocker_erlexec. It does the same as erlexec (and will
