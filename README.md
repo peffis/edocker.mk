@@ -156,11 +156,11 @@ match your app name. To work around this you can either specify the
 APP_NAME as an argument to the make command and the build system will
 use this name as root folder when building the release in docker, or
 you could also let edocker.mk try to figuring out by looking at
-ebin/*.app or src/*.app.src. This automatic app name detection seems
+ebin/\*.app or src/\*.app.src. This automatic app name detection seems
 to work but it is based on some sed regex parsing of the files
 (because the erlang vm might not be available in the environment where
-the make command is executed) so it could perhaps break if your *.app
-or *.app.src looks different than the ones tried so far.
+the make command is executed) so it could perhaps break if your \*.app
+or \*.app.src looks different than the ones tried so far.
 
 ## edocker_erlexec
 This repository also includes an alternative binary for bootstrapping
