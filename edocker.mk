@@ -1,4 +1,11 @@
-PROJECT_NAME = $(shell basename `pwd`)
+# APP_NAME is the name of the app. Unfortunately erlang.mk currently requires the top folder
+# name to be the same as the APP_NAME. Therefore you can either specify the app name as an
+# argument to the make command or the script will try to figure it out by looking into any
+# ebin/*.app or src/*.app.src it might find
+APP_NAME ?= $(shell cat ebin/*.app src/*.app.src 2>/dev/null | sed -n 's/\s*{\s*application\s*,[ \t\n]*\([^ ^\t^\n][^,]*\),.*\s*/\1/p' | head -1)
+APP_NAME ?= $(shell basename `pwd`)
+
+# This is the version tag of the resulting docker image
 TAG ?= 1.0
 
 # The docker binary you have in your system, if you require "sudo docker"
@@ -32,13 +39,13 @@ EXTRA_PACKAGES ?=
 # this is extracting a tar file that is generated from tarring up the .ed folder in the git
 # repository
 ed_helper_files:
-	@ echo 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 | base64 -d | tar xzf -
+	@ echo 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 | base64 -d | tar xzf -
 
 
 define make_builder
-$(DOCKER) build -t "builder_${PROJECT_NAME}:${TAG}" . -f - <<EOF
+$(DOCKER) build -t "builder_${APP_NAME}:${TAG}" . -f - <<EOF
 FROM erlang:$(ERLANG_VERSION)
-WORKDIR /$(PROJECT_NAME)
+WORKDIR /$(APP_NAME)
 RUN apt-get update && apt-get -y --force-yes install software-properties-common
 RUN for r in ${EXTRA_PPAS}; do add-apt-repository -y $r; done
 RUN if [ ! -z "${SOURCES_LIST_APPEND}" ]; then printf "${SOURCES_LIST_APPEND}" >> /etc/apt/sources.list; fi
@@ -66,7 +73,7 @@ ENV EDOCKER_HOST 127.0.0.1
 ENV ERL_INETRC /etc/erl_inetrc
 ENV TZ=GMT
 ENTRYPOINT exec ${BINDIR}/edocker_erlexec
-COPY --from="builder_${PROJECT_NAME}:${TAG}" /${PROJECT_NAME}/_rel/${REL_NAME}/ /
+COPY --from="builder_${APP_NAME}:${TAG}" /${APP_NAME}/_rel/${REL_NAME}/ /
 EOF
 endef
 export make_release_image
@@ -77,9 +84,9 @@ ebuilder:
 	@ eval "$$make_builder"
 
 erelease_image: ebuilder
-	$(eval REL_NAME := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/release_name))
-	$(eval REL_VSN := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/release_version))
-	$(eval ERTS_VSN := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/system_version))
+	$(eval REL_NAME := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/release_name))
+	$(eval REL_VSN := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/release_version))
+	$(eval ERTS_VSN := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/system_version))
 	$(eval BINDIR := /erts-${ERTS_VSN}/bin)
 	@ eval "$$make_release_image"
 

@@ -1,4 +1,11 @@
-PROJECT_NAME = $(shell basename `pwd`)
+# APP_NAME is the name of the app. Unfortunately erlang.mk currently requires the top folder
+# name to be the same as the APP_NAME. Therefore you can either specify the app name as an
+# argument to the make command or the script will try to figure it out by looking into any
+# ebin/*.app or src/*.app.src it might find
+APP_NAME ?= $(shell cat ebin/*.app src/*.app.src 2>/dev/null | sed -n 's/\s*{\s*application\s*,[ \t\n]*\([^ ^\t^\n][^,]*\),.*\s*/\1/p' | head -1)
+APP_NAME ?= $(shell basename `pwd`)
+
+# This is the version tag of the resulting docker image
 TAG ?= 1.0
 
 # The docker binary you have in your system, if you require "sudo docker"
@@ -36,9 +43,9 @@ ed_helper_files:
 
 
 define make_builder
-$(DOCKER) build -t "builder_${PROJECT_NAME}:${TAG}" . -f - <<EOF
+$(DOCKER) build -t "builder_${APP_NAME}:${TAG}" . -f - <<EOF
 FROM erlang:$(ERLANG_VERSION)
-WORKDIR /$(PROJECT_NAME)
+WORKDIR /$(APP_NAME)
 RUN apt-get update && apt-get -y --force-yes install software-properties-common
 RUN for r in ${EXTRA_PPAS}; do add-apt-repository -y $r; done
 RUN if [ ! -z "${SOURCES_LIST_APPEND}" ]; then printf "${SOURCES_LIST_APPEND}" >> /etc/apt/sources.list; fi
@@ -66,7 +73,7 @@ ENV EDOCKER_HOST 127.0.0.1
 ENV ERL_INETRC /etc/erl_inetrc
 ENV TZ=GMT
 ENTRYPOINT exec ${BINDIR}/edocker_erlexec
-COPY --from="builder_${PROJECT_NAME}:${TAG}" /${PROJECT_NAME}/_rel/${REL_NAME}/ /
+COPY --from="builder_${APP_NAME}:${TAG}" /${APP_NAME}/_rel/${REL_NAME}/ /
 EOF
 endef
 export make_release_image
@@ -77,9 +84,9 @@ ebuilder:
 	@ eval "$$make_builder"
 
 erelease_image: ebuilder
-	$(eval REL_NAME := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/release_name))
-	$(eval REL_VSN := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/release_version))
-	$(eval ERTS_VSN := $(shell ${DOCKER} run --rm "builder_${PROJECT_NAME}:${TAG}" .ed/bin/system_version))
+	$(eval REL_NAME := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/release_name))
+	$(eval REL_VSN := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/release_version))
+	$(eval ERTS_VSN := $(shell ${DOCKER} run --rm "builder_${APP_NAME}:${TAG}" .ed/bin/system_version))
 	$(eval BINDIR := /erts-${ERTS_VSN}/bin)
 	@ eval "$$make_release_image"
 
