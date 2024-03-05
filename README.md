@@ -1,5 +1,5 @@
 # edocker.mk
-An erlang linux release/docker image builder
+An erlang linux release docker image builder
 
 ## Overview
 Some people have a need to shrink the sizes of their Docker images. If
